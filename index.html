@@ -76,6 +76,55 @@
         font-size: 0.95em;
       }
 
+      /* --- Code Block Styling --- */
+      .code-block-container {
+        position: relative;
+        background-color: #282c34; /* Dark background for code */
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        overflow-x: auto;
+      }
+      .code-block {
+        background-color: #282c34;
+        color: #abb2bf; /* Light grey for text */
+        font-family: "Fira Code", "Cascadia Code", "Consolas", "Monaco",
+          monospace;
+        font-size: 0.9em;
+        padding: 0;
+        margin: 0;
+        white-space: pre-wrap; /* Ensures line wrapping */
+        word-wrap: break-word;
+        line-height: 1.5;
+        max-height: 400px; /* Limit height for long code blocks */
+      }
+      .copy-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.8em;
+        transition: background-color 0.2s ease;
+      }
+      .copy-button:hover {
+        background-color: #0056b3;
+      }
+      .copy-button:active {
+        background-color: #004085;
+      }
+      .copy-button.copied {
+        background-color: #28a745; /* Green when copied */
+      }
+      .copy-button.copied::after {
+        content: " Copied!";
+      }
+
       /* --- Individual Slider Styles --- */
 
       /* Basic Slider */
@@ -181,6 +230,94 @@
     </header>
 
     <div class="demo-section">
+      <h2>Quick Start Guide</h2>
+      <p>
+        Get your Horizon Slider up and running in minutes! Follow these simple
+        steps to integrate it into your project.
+      </p>
+
+      <h3>1. Include Necessary Files in Your HTML Head</h3>
+      <p>Add these lines to the `head` section of your HTML file.</p>
+      <div class="code-block-container">
+        <button class="copy-button" onclick="copyCode(this, 'html-setup-code')">
+          Copy
+        </button>
+        <pre class="code-block" id="html-setup-code">
+&lt;!-- Horizon Slider CSS (from CDN - replace YOUR_USERNAME and v1.0.0) --&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YOUR_USERNAME/horizon-slider@v1.0.0/css/HorizonSlider.min.css"&gt;
+
+&lt;!-- GSAP Core (required by Draggable) --&gt;
+&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"&gt;&lt;/script&gt;
+</pre
+        >
+      </div>
+
+      <h3>2. Basic HTML Layout for Your Slider</h3>
+      <p>
+        Use this basic structure for each slider you want to create. Customize
+        the `slide` content as needed.
+      </p>
+      <div class="code-block-container">
+        <button
+          class="copy-button"
+          onclick="copyCode(this, 'html-layout-code')"
+        >
+          Copy
+        </button>
+        <pre class="code-block" id="html-layout-code">
+&lt;!-- Your Slider Container --&gt;
+&lt;div class="slider-container my-custom-slider"&gt;
+    &lt;div class="slider-track"&gt;
+        &lt;div class="slide"&gt;Your Slide Content 1&lt;/div&gt;
+        &lt;div class="slide"&gt;Your Slide Content 2&lt;/div&gt;
+        &lt;div class="slide"&gt;Your Slide Content 3&lt;/div&gt;
+        &lt;!-- Add more slides as needed --&gt;
+    &lt;/div&gt;
+    &lt;!-- Navigation and tracker will be dynamically generated here --&gt;
+&lt;/div&gt;
+</pre
+        >
+      </div>
+
+      <h3>3. Initialize Your Slider with JavaScript</h3>
+      <p>
+        Place this script just before your closing `&lt;/body&gt;` tag. Remember
+        to link your Horizon Slider JS file.
+      </p>
+      <div class="code-block-container">
+        <button class="copy-button" onclick="copyCode(this, 'js-init-code')">
+          Copy
+        </button>
+        <pre class="code-block" id="js-init-code">
+&lt;!-- Horizon Slider JavaScript (from CDN - replace YOUR_USERNAME and v1.0.0) --&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/YOUR_USERNAME/horizon-slider@v1.0.0/js/HorizonSlider.min.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+    // Initialize your slider(s)
+    advanceSlider({
+        '.my-custom-slider': { // Use the class name of your slider container
+            loop: true,
+            margin: 20,
+            nav: true,
+            showTracker: true,
+            drag: true,
+            autoplay: {
+                delay: 4000,
+                pauseOnHover: true
+            },
+            responsive: {
+                0: { items: 1 },    // 1 item on screens < 768px
+                768: { items: 2 },  // 2 items on screens >= 768px
+                1024: { items: 3 }  // 3 items on screens >= 1024px
+            }
+        }
+    });
+&lt;/script&gt;
+</pre
+        >
+      </div>
+    </div>
+    <div class="demo-section">
       <h2>Basic Slider Demo</h2>
       <div class="slider-container basic-slider">
         <div class="slider-track">
@@ -285,6 +422,27 @@
     <script src="./js/HorizonSlider.js"></script>
 
     <script>
+      // Function to copy code to clipboard
+      function copyCode(button, elementId) {
+        const codeElement = document.getElementById(elementId);
+        const codeText = codeElement.innerText;
+
+        navigator.clipboard
+          .writeText(codeText)
+          .then(() => {
+            button.textContent = "Copied!";
+            button.classList.add("copied");
+            setTimeout(() => {
+              button.textContent = "Copy";
+              button.classList.remove("copied");
+            }, 2000); // Reset button text after 2 seconds
+          })
+          .catch((err) => {
+            console.error("Failed to copy text: ", err);
+            alert("Failed to copy code. Please copy manually.");
+          });
+      }
+
       // Initialize all sliders on the page
       advanceSlider({
         ".basic-slider": {

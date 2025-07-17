@@ -696,7 +696,7 @@ CustomSlider.prototype.destroy = function () {
  * Loads Draggable.min.js dynamically if not already present.
  * @param {Object.<string, Object>} config A map where keys are CSS selectors and values are slider options.
  */
-function advanceSlider(config) {
+function horizonSlider(config) {
   // Draggable is still needed for the trackerThumb functionality.
   // If you remove trackerThumb, you can remove Draggable dependency.
   if (typeof Draggable === "undefined") {
@@ -756,9 +756,9 @@ function _initializeSliders(config) {
 // Expose to window for global access (for CDN usage)
 if (typeof window !== "undefined") {
   window.CustomSlider = CustomSlider;
-  window.advanceSlider = advanceSlider;
+  window.horizonSlider = horizonSlider;
 } else {
   console.warn(
-    "CustomSlider and advanceSlider not attached to window: Non-browser environment detected."
+    "CustomSlider and horizonSlider not attached to window: Non-browser environment detected."
   );
 }

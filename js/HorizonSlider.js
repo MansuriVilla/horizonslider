@@ -40,13 +40,13 @@ function CustomSlider(container, options) {
 
   this.container = container;
   this.options = {
-    loop: false,
+    loop: true,
     margin: 0, // Gap between slides
     nav: true, // Show navigation buttons
     showTracker: true, // Show slider progress tracker
     enableSlider: true, // Enable/disable slider functionality entirely
-    drag: false, // Enable/disable drag functionality
-    autoplay: false, // Autoplay options: false or { delay: 3000, pauseOnHover: true }
+    drag: true, // Enable/disable drag functionality
+    autoplay: true, // Autoplay options: false or { delay: 3000, pauseOnHover: true }
     responsive: { 0: { items: 1 } }, // Number of visible items at different breakpoints
     ...options,
   };
@@ -68,6 +68,14 @@ function CustomSlider(container, options) {
   this.lastTranslateX = 0;
   this.autoplayTimer = null;
   this.lastWidth = this.container.offsetWidth;
+
+  // CRITICAL FIX: Initialize _previousDragState based on the *actual* initial drag setting
+  // after getVisibleSlides has determined it for the current viewport size.
+  // We call getVisibleSlides here specifically to ensure this.options.drag is set
+  // according to the initial breakpoint before _previousDragState is saved.
+  this.getVisibleSlides();
+  this._previousDragState = this.options.drag;
+
 
   // Store debounced functions for proper removal
   this._debouncedResizeHandler = debounce(this._handleResize.bind(this), 200); // Debounce resize more aggressively
@@ -114,7 +122,7 @@ CustomSlider.prototype._initializeSlider = function () {
 
     this.setupSlider();
     this.updateSlider();
-    this.initEvents();
+    this.initEvents(); // This will now correctly call initDragEvents based on initial `this.options.drag`
     this.initAutoplay();
   } else {
     console.warn(
@@ -177,23 +185,37 @@ CustomSlider.prototype.getVisibleSlides = function () {
   const breakpoints = Object.keys(responsive)
     .map(Number)
     .sort((a, b) => a - b);
-  let items = responsive[breakpoints[0]]?.items || 1; // Default to 1 item
-  let drag = this.options.drag;
 
-  for (let bp of breakpoints) {
+  let effectiveItems = this.slides.length > 0 ? 1 : 0; // Default or 0 if no slides
+  let effectiveDrag = this.options.drag; // Start with the base drag option from initial options
+
+  // Find the largest breakpoint that is less than or equal to the current width
+  for (let i = breakpoints.length - 1; i >= 0; i--) {
+    const bp = breakpoints[i];
     if (width >= bp) {
-      if (responsive[bp]?.items !== undefined) {
-        items = responsive[bp].items;
+      const breakpointSettings = responsive[bp];
+      if (breakpointSettings?.items !== undefined) {
+        effectiveItems = breakpointSettings.items;
       }
-      if (responsive[bp]?.drag !== undefined) {
-        drag = responsive[bp].drag;
+      // CRITICAL FIX: Only apply drag if defined at this breakpoint, otherwise, use the value from the next smaller breakpoint.
+      // Or, if no drag is defined for this breakpoint, the 'effectiveDrag' from a previous (smaller) breakpoint would remain,
+      // which is the desired cascading behavior (smallest to largest, but only if explicitly set).
+      if (breakpointSettings?.drag !== undefined) {
+        effectiveDrag = breakpointSettings.drag;
       }
-    } else {
-      break;
+      // Once we find the largest matching breakpoint, we have our items and drag.
+      // If we want a strict "only apply at this exact breakpoint and smaller, but largest overrides",
+      // the current loop from largest to smallest is correct.
+      break; // Exit the loop as we found the most specific breakpoint
     }
   }
-  this.options.drag = drag;
-  return Math.min(items, this.slides.length);
+
+  // Ensure effectiveItems doesn't exceed total slides
+  effectiveItems = Math.min(effectiveItems, this.slides.length);
+
+  // Update the instance's options
+  this.options.drag = effectiveDrag;
+  return effectiveItems;
 };
 
 CustomSlider.prototype.setupSlider = function () {
@@ -221,7 +243,7 @@ CustomSlider.prototype.calculateSlideWidth = function () {
   });
 
   // We need to calculate based on the current visible slides and container width
-  this.visibleSlides = this.getVisibleSlides();
+  this.visibleSlides = this.getVisibleSlides(); // Recalculate visibleSlides & update this.options.drag
   const containerWidth = this.container.offsetWidth;
   const gap = this.options.margin;
 
@@ -242,7 +264,7 @@ CustomSlider.prototype.adjustThumbWidth = function () {
   if (this.trackerThumb && this.options.showTracker) {
     const containerWidth = this.trackerContainer.offsetWidth; // Use trackerContainer's width
     const totalSlides = this.slides.length;
-    const scrollableWidth = this.trackWidth - this.container.offsetWidth; // Total pixel scrollable
+    // const scrollableWidth = this.trackWidth - this.container.offsetWidth; // Not directly used for thumb width
     const thumbRatio = this.container.offsetWidth / this.trackWidth; // Ratio of visible to total track
     let thumbWidth = containerWidth * thumbRatio;
 
@@ -343,6 +365,7 @@ CustomSlider.prototype.initEvents = function () {
 
             // Update currentIndex based on track position
             const slideWidthWithGap = this.slideWidth + this.options.margin;
+            // Round to nearest index, clamping to ensure it's within valid range
             this.currentIndex = Math.round(
               Math.abs(targetTrackX) / slideWidthWithGap
             );
@@ -371,6 +394,7 @@ CustomSlider.prototype.initEvents = function () {
   }
 
   // Drag events for the main track
+  // This is called initially and will depend on the initial this.options.drag value
   if (this.options.drag && this.options.enableSlider) {
     this.initDragEvents();
   }
@@ -417,10 +441,13 @@ CustomSlider.prototype._handleNavClick = function (direction) {
 };
 
 CustomSlider.prototype.initDragEvents = function () {
-  // Bind handlers once to ensure proper `this` context and allow removal
-  this._handleTouchStartBound = this.handleTouchStart.bind(this);
-  this._handleTouchMoveBound = this.handleTouchMove.bind(this);
-  this._handleTouchEndBound = this.handleTouchEnd.bind(this);
+  // Ensure handlers are bound only once per instance for removal
+  // Check if they are already bound (e.g., if initDragEvents is called multiple times)
+  if (!this._handleTouchStartBound) {
+    this._handleTouchStartBound = this.handleTouchStart.bind(this);
+    this._handleTouchMoveBound = this.handleTouchMove.bind(this);
+    this._handleTouchEndBound = this.handleTouchEnd.bind(this);
+  }
 
   this.track.addEventListener("touchstart", this._handleTouchStartBound, {
     passive: true,
@@ -446,7 +473,10 @@ CustomSlider.prototype.initDragEvents = function () {
 };
 
 CustomSlider.prototype.removeDragEvents = function () {
-  if (!this.track) return; // Ensure track exists before trying to remove listeners
+  if (!this.track || !this._handleTouchStartBound) {
+    // Ensure track exists and handlers were actually bound before attempting to remove
+    return;
+  }
 
   this.track.removeEventListener("touchstart", this._handleTouchStartBound);
   this.track.removeEventListener("touchmove", this._handleTouchMoveBound);
@@ -455,6 +485,11 @@ CustomSlider.prototype.removeDragEvents = function () {
   this.track.removeEventListener("mousemove", this._handleTouchMoveBound);
   this.track.removeEventListener("mouseup", this._handleTouchEndBound);
   this.track.removeEventListener("mouseleave", this._handleTouchEndBound);
+
+  // Clear bound references to allow garbage collection and indicate events are removed
+  this._handleTouchStartBound = null;
+  this._handleTouchMoveBound = null;
+  this._handleTouchEndBound = null;
 };
 
 CustomSlider.prototype.handleTouchStart = function (e) {
@@ -494,7 +529,6 @@ CustomSlider.prototype.handleTouchMove = function (e) {
   this.track.style.transform = `translateX(${newTranslateX}px)`;
 };
 
-// ...existing code...
 CustomSlider.prototype.handleTouchEnd = function () {
   if (!this.isDragging) return;
   this.isDragging = false;
@@ -507,8 +541,9 @@ CustomSlider.prototype.handleTouchEnd = function () {
 
   let targetIndex = this.currentIndex;
 
-  // Velocity detection (optional, for more responsive swipe)
-  const velocity = diffX / slideWidthWithGap; // normalized velocity
+  // Velocity detection (optional, for more responsive swipe) - a simple proxy
+  // Note: For true velocity, you'd track time difference as well (e.g., using performance.now())
+  const velocity = diffX / 100; // Arbitrary scaling for a rough "velocity"
 
   if (Math.abs(diffX) > swipeThreshold || Math.abs(velocity) > 0.3) {
     // Swipe left (next)
@@ -542,7 +577,6 @@ CustomSlider.prototype.handleTouchEnd = function () {
     this.initAutoplay();
   }
 };
-// ...existing code...
 
 CustomSlider.prototype.handleKeydown = function (e) {
   // Only respond to left/right arrow keys
@@ -613,22 +647,41 @@ CustomSlider.prototype.stopAutoplay = function () {
  * @private
  */
 CustomSlider.prototype._handleResize = function () {
+  // Always get the updated visible slides and drag state based on current window width
+  // getVisibleSlides updates this.options.drag based on the current breakpoint
   const newVisibleSlides = this.getVisibleSlides();
-  if (
-    newVisibleSlides !== this.visibleSlides ||
-    this.container.offsetWidth !== this.lastWidth
-  ) {
+  const currentDragState = this.options.drag; // This is the *newly calculated* drag state for the current width
+
+  const dragStateChanged = currentDragState !== this._previousDragState;
+  const widthChanged = this.container.offsetWidth !== this.lastWidth;
+  const visibleSlidesChanged = newVisibleSlides !== this.visibleSlides;
+
+  // Only proceed with layout updates if something relevant has changed
+  if (visibleSlidesChanged || widthChanged || dragStateChanged) {
     this.lastWidth = this.container.offsetWidth;
+
+    // --- CRITICAL FIX PART ---
+    // If the drag state has changed, we need to explicitly manage the event listeners.
+    if (dragStateChanged) {
+      // Always remove existing drag events first to ensure a clean state
+      this.removeDragEvents();
+
+      // Then, add them back ONLY if the new state requires dragging AND the slider is enabled
+      if (currentDragState && this.options.enableSlider) {
+        this.initDragEvents();
+      }
+      // Update the previous state for the next resize check
+      this._previousDragState = currentDragState;
+    }
+    // --- END CRITICAL FIX PART ---
+
     this.calculateSlideWidth();
     this.adjustThumbWidth();
     this.updateSlider();
-    // Re-initialize drag events if options.drag changes or if needed
-    this.removeDragEvents(); // Remove old listeners
-    if (this.options.drag && this.options.enableSlider) {
-      this.initDragEvents(); // Add new listeners with updated options
-    }
   }
+
   // Re-initialize Draggable if the bounds have changed for the thumb
+  // This is separate from main drag, and its bounds always need updating on resize
   if (
     this.trackerThumb &&
     this.options.showTracker &&
@@ -640,6 +693,7 @@ CustomSlider.prototype._handleResize = function () {
         minX: 0,
         maxX: this.trackerContainer.offsetWidth - this.trackerThumb.offsetWidth,
       });
+      draggableInstance.update(); // Important: updates Draggable's internal size/position calculations
     }
   }
 };
@@ -653,6 +707,7 @@ CustomSlider.prototype.destroy = function () {
   window.removeEventListener("resize", this._debouncedResizeHandler);
   this.container.removeEventListener("keydown", this._handleKeydownBound);
 
+  // Kill Draggable instance if it exists
   if (this.trackerThumb && typeof Draggable !== "undefined") {
     const draggableInstance = Draggable.get(this.trackerThumb);
     if (draggableInstance) {
@@ -660,6 +715,8 @@ CustomSlider.prototype.destroy = function () {
     }
   }
   this.removeDragEvents(); // Removes both touch and mouse drag listeners
+
+  // Remove autoplay hover listeners
   this.container.removeEventListener("mouseenter", this._handleMouseEnterBound);
   this.container.removeEventListener("mouseleave", this._handleMouseLeaveBound);
 
@@ -669,7 +726,7 @@ CustomSlider.prototype.destroy = function () {
     navArea.remove();
   }
 
-  // Reset inline styles applied by the slider
+  // Reset inline styles applied by the slider to restore initial HTML state
   if (this.track) {
     this.track.style.transform = "";
     this.track.style.width = "";
@@ -680,7 +737,7 @@ CustomSlider.prototype.destroy = function () {
     slide.style.minWidth = "";
   });
 
-  // Clear references
+  // Clear all references to prevent memory leaks
   this.container = null;
   this.track = null;
   this.slides = [];
@@ -689,6 +746,11 @@ CustomSlider.prototype.destroy = function () {
   this.trackerContainer = null;
   this.trackerThumb = null;
   this.options = null; // Clear options reference
+  this._previousDragState = null; // Clear the previous drag state reference
+  this._debouncedResizeHandler = null; // Clear bound function references
+  this._handleKeydownBound = null;
+  this._handleMouseEnterBound = null;
+  this._handleMouseLeaveBound = null;
 };
 
 /**
@@ -705,7 +767,7 @@ function horizonSlider(config) {
     );
     const script = document.createElement("script");
     script.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/Draggable.min.js";
+      "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/Draggable.min.js"; // Ensure this path is correct or adjust
     script.onload = () => {
       // GSAP core is a dependency for Draggable. Ensure it's loaded first.
       // If GSAP is loaded via a separate script, it might already be there.
@@ -739,7 +801,7 @@ function _initializeSliders(config) {
       continue;
     }
     elements.forEach((el) => {
-      // Destroy existing instances if they somehow exist to prevent duplicates
+      // Destroy existing instances if they exist to prevent duplicates
       if (
         el.customSliderInstance &&
         typeof el.customSliderInstance.destroy === "function"

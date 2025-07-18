@@ -457,16 +457,16 @@
           loop: true,
           margin: 20,
           nav: true,
+          drag: false,
           showTracker: true,
-          drag: true,
           autoplay: {
             delay: 3000,
             pauseOnHover: true,
           },
           responsive: {
             0: { items: 1 },
-            768: { items: 2 },
-            1024: { items: 4 },
+            768: { items: 2,  drag: true, },
+            1024: { items: 4,  },
           },
         },
         ".no-drag-slider": {

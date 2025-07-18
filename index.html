@@ -171,7 +171,8 @@
       } /* Subtle hover effect */
 
       /* No Drag Slider */
-      .no-drag-slider .slide {
+      .no-drag-slider .slide,
+      .one-thired-slider .slide {
         background-color: #ffebee; /* Light red */
         color: #f44336; /* Red */
         font-size: 2.2em;
@@ -418,6 +419,23 @@
       </p>
     </div>
 
+    <div class="demo-section">
+      <h2>Slider with Disabled Drag</h2>
+      <div class="slider-container one-thired-slider">
+        <div class="slider-track">
+          <div class="slide">No Drag 1</div>
+          <div class="slide">No Drag 2</div>
+          <div class="slide">No Drag 3</div>
+          <div class="slide">No Drag 4</div>
+          <div class="slide">No Drag 5</div>
+        </div>
+      </div>
+      <p>
+        This slider demonstrates how to disable the dragging feature. Navigation
+        is controlled solely by the previous/next buttons.
+      </p>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     <script src="./js/HorizonSlider.js"></script>
 
@@ -465,8 +483,8 @@
           },
           responsive: {
             0: { items: 1 },
-            768: { items: 2,  drag: true, },
-            1024: { items: 4,  },
+            768: { items: 2, drag: true },
+            1024: { items: 4 },
           },
         },
         ".no-drag-slider": {
@@ -493,6 +511,19 @@
             0: { items: 1 },
             768: { items: 2 },
             1024: { items: 3 },
+          },
+        },
+        ".one-thired-slider": {
+          loop: false,
+          margin: 25,
+          nav: true,
+          showTracker: true,
+          drag: false,
+          autoplay: false,
+          responsive: {
+            0: { items: 1 },
+            768: { items: 2 },
+            1024: { items: 2.2 },
           },
         },
       });

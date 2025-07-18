@@ -18,6 +18,7 @@
 .next-btn svg { display: block; width: 100%; height: 100%; padding: 25%; box-sizing: border-box; }
 .prev-btn:hover svg path,
 .next-btn:hover svg path { fill: #fff; }
+[disabled="true"] { opacity: 0.3; pointer-events: none; scale: 0.8; }
 /*-----------------------------
     Tracker
   -------------------------------*/

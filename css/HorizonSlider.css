@@ -1,6 +1,6 @@
 :root { --slider-primary-color: #000; --slider-secondary-color: #29292b; --slider-track-bg: #f2f2f2; --slider-thumb-bg: #434343; --slider-border-radius: 12px; --nav-btn-size: clamp(30px, 3vw, 40px); --nav-btn-border-color: #000; --nav-gap: 20px; --slider-track-height: 5px; --animation-duration: 0.5s; --animation-ease: ease-in-out; }
 /*-----------------------------
-    Slider Main Styles
+    Slider Main Styles fff
   -------------------------------*/
 .horizon-slider_container { max-width: 1690px; margin: 0 auto; position: relative; overflow: hidden; }
 .horizon-slider_track { display: flex; transition: transform var(--animation-duration) var(--animation-ease); will-change: transform; }

@@ -95,7 +95,7 @@ function CustomSlider(container, options) {
  */
 CustomSlider.prototype._initializeSlider = function () {
   // First, render the track and slides (they should already be in the HTML)
-  this.track = this.container.querySelector(".slider-track");
+  this.track = this.container.querySelector(".horizon-slider_track");
   if (!this.track) {
     console.error(
       "CustomSlider: '.slider-track' element not found inside the container.",
@@ -103,7 +103,7 @@ CustomSlider.prototype._initializeSlider = function () {
     );
     this.options.enableSlider = false; // Disable if core elements are missing
   } else {
-    this.slides = Array.from(this.track.querySelectorAll(".slide"));
+    this.slides = Array.from(this.track.querySelectorAll(".horizon-slide"));
     if (this.slides.length === 0) {
       console.warn(
         "CustomSlider: No '.slide' elements found in the track. Slider may not function as expected.",

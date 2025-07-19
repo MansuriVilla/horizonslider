@@ -4,8 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Horizon Slider - All Demos</title>
+    <!-- <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/mansurivilla/horizonslider/css/HorizonSlider.min.css"
+    /> -->
 
     <link rel="stylesheet" href="./css/HorizonSlider.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
 
     <style>
       body {
@@ -41,9 +46,9 @@
         border-radius: 10px;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
         margin-bottom: 60px;
-        max-width: 1720px; /* Aligns with slider-container max-width */
-        margin-left: auto;
-        margin-right: auto;
+        max-width: 1720px; /* Aligns with horizon-slider_container max-width */
+        margin-left: auto; /* Corrected to auto for centering */
+        margin-right: auto; /* Corrected to auto for centering */
         border: 1px solid #e9ecef;
       }
 
@@ -128,7 +133,7 @@
       /* --- Individual Slider Styles --- */
 
       /* Basic Slider */
-      .basic-slider .slide {
+      .basic-slider .horizon-slide {
         background-color: #e3f2fd; /* Light blue */
         color: #2196f3; /* Blue */
         font-size: 2.2em;
@@ -141,16 +146,16 @@
         border: 1px solid #bbdefb; /* Lighter blue border */
         transition: background-color 0.3s ease;
       }
-      .basic-slider .slide:nth-child(even) {
+      .basic-slider .horizon-slide:nth-child(even) {
         background-color: #c9e6fe;
       }
-      .basic-slider .slide:hover {
+      .basic-slider .horizon-slide:hover {
         background-color: #a0dfff;
         cursor: default;
       }
 
       /* Autoplay Slider */
-      .autoplay-slider .slide {
+      .autoplay-slider .horizon-slide {
         background-color: #e8f5e9; /* Light green */
         color: #4caf50; /* Green */
         font-size: 2.2em;
@@ -163,16 +168,16 @@
         border: 1px solid #c8e6c9; /* Lighter green border */
         transition: transform 0.3s ease;
       }
-      .autoplay-slider .slide:nth-child(even) {
+      .autoplay-slider .horizon-slide:nth-child(even) {
         background-color: #dcedc8;
       }
-      .autoplay-slider .slide:hover {
+      .autoplay-slider .horizon-slide:hover {
         transform: scale(1.02);
       } /* Subtle hover effect */
 
       /* No Drag Slider */
-      .no-drag-slider .slide,
-      .one-thired-slider .slide {
+      .no-drag-slider .horizon-slide,
+      .one-thired-slider .horizon-slide {
         background-color: #ffebee; /* Light red */
         color: #f44336; /* Red */
         font-size: 2.2em;
@@ -185,12 +190,12 @@
         border: 1px solid #ffcdd2; /* Lighter red border */
         cursor: not-allowed; /* Indicate no drag */
       }
-      .no-drag-slider .slide:nth-child(even) {
+      .no-drag-slider .horizon-slide:nth-child(even) {
         background-color: #ffcdd2;
       }
 
       /* Image Slider */
-      .image-slider .slide {
+      .image-slider .horizon-slide {
         background-color: #fdfefe;
         display: flex;
         flex-direction: column;
@@ -203,7 +208,7 @@
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
         overflow: hidden; /* Ensure image doesn't overflow */
       }
-      .image-slider .slide img {
+      .image-slider .horizon-slide img {
         max-width: 100%;
         height: 200px; /* Fixed height for images */
         object-fit: cover; /* Maintain aspect ratio and cover area */
@@ -211,10 +216,10 @@
         display: block; /* Remove extra space below inline images */
         transition: transform 0.3s ease;
       }
-      .image-slider .slide img:hover {
+      .image-slider .horizon-slide img:hover {
         transform: scale(1.05); /* Zoom effect on hover */
       }
-      .image-slider .slide p {
+      .image-slider .horizon-slide p {
         font-size: 1em;
         color: #4a4a4a;
         margin-top: 10px;
@@ -244,8 +249,8 @@
           Copy
         </button>
         <pre class="code-block" id="html-setup-code">
-&lt;!-- Horizon Slider CSS (from CDN - replace YOUR_USERNAME and v1.0.0) --&gt;
-&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YOUR_USERNAME/horizon-slider@v1.0.0/css/HorizonSlider.min.css"&gt;
+&lt;!-- Horizon Slider CSS --&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mansurivilla/horizonslider/css/HorizonSlider.min.css"&gt;
 
 &lt;!-- GSAP Core (required by Draggable) --&gt;
 &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"&gt;&lt;/script&gt;
@@ -267,11 +272,11 @@
         </button>
         <pre class="code-block" id="html-layout-code">
 &lt;!-- Your Slider Container --&gt;
-&lt;div class="slider-container my-custom-slider"&gt;
-    &lt;div class="slider-track"&gt;
-        &lt;div class="slide"&gt;Your Slide Content 1&lt;/div&gt;
-        &lt;div class="slide"&gt;Your Slide Content 2&lt;/div&gt;
-        &lt;div class="slide"&gt;Your Slide Content 3&lt;/div&gt;
+&lt;div class="horizon-slider_container my-custom-slider"&gt;
+    &lt;div class="horizon-slider_track"&gt;
+        &lt;div class="horizon-slide"&gt;Your Slide Content 1&lt;/div&gt;
+        &lt;div class="horizon-slide"&gt;Your Slide Content 2&lt;/div&gt;
+        &lt;div class="horizon-slide"&gt;Your Slide Content 3&lt;/div&gt;
         &lt;!-- Add more slides as needed --&gt;
     &lt;/div&gt;
     &lt;!-- Navigation and tracker will be dynamically generated here --&gt;
@@ -290,8 +295,8 @@
           Copy
         </button>
         <pre class="code-block" id="js-init-code">
-&lt;!-- Horizon Slider JavaScript (from CDN - replace YOUR_USERNAME and v1.0.0) --&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/YOUR_USERNAME/horizon-slider@v1.0.0/js/HorizonSlider.min.js"&gt;&lt;/script&gt;
+&lt;!-- Horizon Slider JavaScript --&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/mansurivilla/horizonslider/js/HorizonSlider-min.js"&gt;&lt;/script&gt;
 
 &lt;script&gt;
     // Initialize your slider(s)
@@ -320,14 +325,14 @@
     </div>
     <div class="demo-section">
       <h2>Basic Slider Demo</h2>
-      <div class="slider-container basic-slider">
-        <div class="slider-track">
-          <div class="slide">Slide 1</div>
-          <div class="slide">Slide 2</div>
-          <div class="slide">Slide 3</div>
-          <div class="slide">Slide 4</div>
-          <div class="slide">Slide 5</div>
-          <div class="slide">Slide 6</div>
+      <div class="horizon-slider_container basic-slider">
+        <div class="horizon-slider_track">
+          <div class="horizon-slide">Slide 1</div>
+          <div class="horizon-slide">Slide 2</div>
+          <div class="horizon-slide">Slide 3</div>
+          <div class="horizon-slide">Slide 4</div>
+          <div class="horizon-slide">Slide 5</div>
+          <div class="horizon-slide">Slide 6</div>
         </div>
       </div>
       <p>
@@ -338,15 +343,15 @@
 
     <div class="demo-section">
       <h2>Autoplay Slider with Loop & Pause on Hover</h2>
-      <div class="slider-container autoplay-slider">
-        <div class="slider-track">
-          <div class="slide">Auto Slide 1</div>
-          <div class="slide">Auto Slide 2</div>
-          <div class="slide">Auto Slide 3</div>
-          <div class="slide">Auto Slide 4</div>
-          <div class="slide">Auto Slide 5</div>
-          <div class="slide">Auto Slide 6</div>
-          <div class="slide">Auto Slide 7</div>
+      <div class="horizon-slider_container autoplay-slider">
+        <div class="horizon-slider_track">
+          <div class="horizon-slide">Auto Slide 1</div>
+          <div class="horizon-slide">Auto Slide 2</div>
+          <div class="horizon-slide">Auto Slide 3</div>
+          <div class="horizon-slide">Auto Slide 4</div>
+          <div class="horizon-slide">Auto Slide 5</div>
+          <div class="horizon-slide">Auto Slide 6</div>
+          <div class="horizon-slide">Auto Slide 7</div>
         </div>
       </div>
       <p>
@@ -357,13 +362,13 @@
 
     <div class="demo-section">
       <h2>Slider with Disabled Drag</h2>
-      <div class="slider-container no-drag-slider">
-        <div class="slider-track">
-          <div class="slide">No Drag 1</div>
-          <div class="slide">No Drag 2</div>
-          <div class="slide">No Drag 3</div>
-          <div class="slide">No Drag 4</div>
-          <div class="slide">No Drag 5</div>
+      <div class="horizon-slider_container no-drag-slider">
+        <div class="horizon-slider_track">
+          <div class="horizon-slide">No Drag 1</div>
+          <div class="horizon-slide">No Drag 2</div>
+          <div class="horizon-slide">No Drag 3</div>
+          <div class="horizon-slide">No Drag 4</div>
+          <div class="horizon-slide">No Drag 5</div>
         </div>
       </div>
       <p>
@@ -374,37 +379,37 @@
 
     <div class="demo-section">
       <h2>Slider with Image Content</h2>
-      <div class="slider-container image-slider">
-        <div class="slider-track">
-          <div class="slide">
+      <div class="horizon-slider_container image-slider">
+        <div class="horizon-slider_track">
+          <div class="horizon-slide">
             <img
               src="https://images.pexels.com/photos/618833/pexels-photo-618833.jpeg"
               alt="Mountain Landscape"
             />
             <p>Majestic mountains in the morning light.</p>
           </div>
-          <div class="slide">
+          <div class="horizon-slide">
             <img
               src="https://images.pexels.com/photos/1878811/pexels-photo-1878811.jpeg"
               alt="Deep Forest"
             />
             <p>Tranquil green forest, full of life.</p>
           </div>
-          <div class="slide">
+          <div class="horizon-slide">
             <img
               src="https://images.pexels.com/photos/994605/pexels-photo-994605.jpeg"
               alt="Vast Ocean"
             />
             <p>The calming blue of the endless ocean.</p>
           </div>
-          <div class="slide">
+          <div class="horizon-slide">
             <img
               src="https://images.pexels.com/photos/2260835/pexels-photo-2260835.jpeg"
               alt="Night City"
             />
             <p>City lights twinkling in the night.</p>
           </div>
-          <div class="slide">
+          <div class="horizon-slide">
             <img
               src="https://images.pexels.com/photos/4017971/pexels-photo-4017971.png"
               alt="Desert Dunes"
@@ -421,13 +426,13 @@
 
     <div class="demo-section">
       <h2>Slider with Disabled Drag</h2>
-      <div class="slider-container one-thired-slider">
-        <div class="slider-track">
-          <div class="slide">No Drag 1</div>
-          <div class="slide">No Drag 2</div>
-          <div class="slide">No Drag 3</div>
-          <div class="slide">No Drag 4</div>
-          <div class="slide">No Drag 5</div>
+      <div class="horizon-slider_container one-thired-slider">
+        <div class="horizon-slider_track">
+          <div class="horizon-slide">No Drag 1</div>
+          <div class="horizon-slide">No Drag 2</div>
+          <div class="horizon-slide">No Drag 3</div>
+          <div class="horizon-slide">No Drag 4</div>
+          <div class="horizon-slide">No Drag 5</div>
         </div>
       </div>
       <p>
@@ -436,7 +441,7 @@
       </p>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/mansurivilla/horizonslider/js/HorizonSlider-min.js"></script> -->
     <script src="./js/HorizonSlider.js"></script>
 
     <script>

@@ -2,9 +2,9 @@
 /*-----------------------------
     Slider Main Styles
   -------------------------------*/
-.slider-container { max-width: 1690px; margin: 0 auto; position: relative; overflow: hidden; }
-.slider-track { display: flex; transition: transform var(--animation-duration) var(--animation-ease); will-change: transform; }
-.slide { flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: var(--slider-border-radius); }
+.horizon-slider_container { max-width: 1690px; margin: 0 auto; position: relative; overflow: hidden; }
+.horizon-slider_track { display: flex; transition: transform var(--animation-duration) var(--animation-ease); will-change: transform; }
+.horizon-slide { flex-shrink: 0; background-color: #e3f2fd; /* Light blue */ display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: var(--slider-border-radius); }
 /*-----------------------------
     Navigation Area
   -------------------------------*/

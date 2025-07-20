@@ -29,10 +29,10 @@ function debounce(func, wait) {
  * @param {HTMLElement} container The main container element for the slider.
  * @param {Object} options Configuration options for the slider.
  */
-function CustomSlider(container, options) {
+function HorizonSlider(container, options) {
   if (!(container instanceof HTMLElement)) {
     console.error(
-      "CustomSlider: Provided container is not an HTMLElement.",
+      "HorizonSlider: Provided container is not an HTMLElement.",
       container
     );
     return;
@@ -93,12 +93,12 @@ function CustomSlider(container, options) {
  * Internal method to initialize the slider's DOM and functionality.
  * Separated from constructor for cleaner setup flow.
  */
-CustomSlider.prototype._initializeSlider = function () {
+HorizonSlider.prototype._initializeSlider = function () {
   // First, render the track and slides (they should already be in the HTML)
   this.track = this.container.querySelector(".horizon-slider_track");
   if (!this.track) {
     console.error(
-      "CustomSlider: '.slider-track' element not found inside the container.",
+      "HorizonSlider: '.slider-track' element not found inside the container.",
       this.container
     );
     this.options.enableSlider = false; // Disable if core elements are missing
@@ -106,7 +106,7 @@ CustomSlider.prototype._initializeSlider = function () {
     this.slides = Array.from(this.track.querySelectorAll(".horizon-slide"));
     if (this.slides.length === 0) {
       console.warn(
-        "CustomSlider: No '.slide' elements found in the track. Slider may not function as expected.",
+        "HorizonSlider: No '.slide' elements found in the track. Slider may not function as expected.",
         this.container
       );
       this.options.enableSlider = false; // Disable if no slides
@@ -127,7 +127,7 @@ CustomSlider.prototype._initializeSlider = function () {
     this.initAutoplay();
   } else {
     console.warn(
-      "CustomSlider: Slider functionality is disabled or essential elements are missing for container:",
+      "HorizonSlider: Slider functionality is disabled or essential elements are missing for container:",
       this.container
     );
   }
@@ -136,7 +136,7 @@ CustomSlider.prototype._initializeSlider = function () {
 /**
  * Dynamically renders the navigation buttons and tracker based on slider options.
  */
-CustomSlider.prototype._renderNavigation = function () {
+HorizonSlider.prototype._renderNavigation = function () {
   const navArea = document.createElement("div");
   navArea.className = "slider_navigation-area";
 
@@ -180,7 +180,7 @@ CustomSlider.prototype._renderNavigation = function () {
   }
 };
 
-CustomSlider.prototype.getVisibleSlides = function () {
+HorizonSlider.prototype.getVisibleSlides = function () {
   const width = window.innerWidth;
   const responsive = this.options.responsive;
   const breakpoints = Object.keys(responsive)
@@ -219,7 +219,7 @@ CustomSlider.prototype.getVisibleSlides = function () {
   return effectiveItems;
 };
 
-CustomSlider.prototype.setupSlider = function () {
+HorizonSlider.prototype.setupSlider = function () {
   const gap = this.options.margin;
   this.track.style.gap = `${gap}px`;
   this.calculateSlideWidth();
@@ -237,7 +237,7 @@ CustomSlider.prototype.setupSlider = function () {
   }
 };
 
-CustomSlider.prototype.calculateSlideWidth = function () {
+HorizonSlider.prototype.calculateSlideWidth = function () {
   this.slides.forEach((slide) => {
     slide.style.width = "auto";
     slide.style.minWidth = "0";
@@ -261,7 +261,7 @@ CustomSlider.prototype.calculateSlideWidth = function () {
   this.track.style.width = `${this.trackWidth}px`;
 };
 
-CustomSlider.prototype.adjustThumbWidth = function () {
+HorizonSlider.prototype.adjustThumbWidth = function () {
   if (this.trackerThumb && this.options.showTracker) {
     const containerWidth = this.trackerContainer.offsetWidth; // Use trackerContainer's width
     const totalSlides = this.slides.length;
@@ -279,7 +279,7 @@ CustomSlider.prototype.adjustThumbWidth = function () {
   }
 };
 
-CustomSlider.prototype.updateSlider = function () {
+HorizonSlider.prototype.updateSlider = function () {
   const containerWidth = this.container.offsetWidth;
   // Calculate the maximum negative translation for the track
   const maxOffset = -(this.trackWidth - containerWidth);
@@ -324,7 +324,7 @@ CustomSlider.prototype.updateSlider = function () {
   this._updateNavButtonStates();
 };
 
-CustomSlider.prototype.initEvents = function () {
+HorizonSlider.prototype.initEvents = function () {
   // Resize event
   window.addEventListener("resize", this._debouncedResizeHandler);
 
@@ -418,7 +418,7 @@ CustomSlider.prototype.initEvents = function () {
  * @param {string} direction 'prev' or 'next'.
  * @private
  */
-CustomSlider.prototype._handleNavClick = function (direction) {
+HorizonSlider.prototype._handleNavClick = function (direction) {
   this.stopAutoplay();
   const maxIndex = this.slides.length - this.visibleSlides;
 
@@ -449,7 +449,7 @@ CustomSlider.prototype._handleNavClick = function (direction) {
  * Adds `is-first` and `is-last` classes to the `nav-buttons` div.
  * @private
  */
-CustomSlider.prototype._updateNavButtonStates = function () {
+HorizonSlider.prototype._updateNavButtonStates = function () {
   if (!this.options.nav || !this.navButtonsDiv) {
     return; // Do nothing if navigation is disabled or buttons not rendered
   }
@@ -495,7 +495,7 @@ CustomSlider.prototype._updateNavButtonStates = function () {
   }
 };
 
-CustomSlider.prototype.initDragEvents = function () {
+HorizonSlider.prototype.initDragEvents = function () {
   // Ensure handlers are bound only once per instance for removal
   // Check if they are already bound (e.g., if initDragEvents is called multiple times)
   if (!this._handleTouchStartBound) {
@@ -527,7 +527,7 @@ CustomSlider.prototype.initDragEvents = function () {
   }); // End drag if mouse leaves track
 };
 
-CustomSlider.prototype.removeDragEvents = function () {
+HorizonSlider.prototype.removeDragEvents = function () {
   if (!this.track || !this._handleTouchStartBound) {
     // Ensure track exists and handlers were actually bound before attempting to remove
     return;
@@ -547,7 +547,7 @@ CustomSlider.prototype.removeDragEvents = function () {
   this._handleTouchEndBound = null;
 };
 
-CustomSlider.prototype.handleTouchStart = function (e) {
+HorizonSlider.prototype.handleTouchStart = function (e) {
   this.stopAutoplay();
   // Use clientX for both touch and mouse events
   this.startX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -560,7 +560,7 @@ CustomSlider.prototype.handleTouchStart = function (e) {
   this.lastTranslateX = matrix.m41; // m41 is the translateX value
 };
 
-CustomSlider.prototype.handleTouchMove = function (e) {
+HorizonSlider.prototype.handleTouchMove = function (e) {
   if (!this.isDragging) return;
   // Prevent default scroll behavior only if we are actively dragging horizontally
   if (e.cancelable) {
@@ -584,7 +584,7 @@ CustomSlider.prototype.handleTouchMove = function (e) {
   this.track.style.transform = `translateX(${newTranslateX}px)`;
 };
 
-CustomSlider.prototype.handleTouchEnd = function () {
+HorizonSlider.prototype.handleTouchEnd = function () {
   if (!this.isDragging) return;
   this.isDragging = false;
 
@@ -633,7 +633,7 @@ CustomSlider.prototype.handleTouchEnd = function () {
   }
 };
 
-CustomSlider.prototype.handleKeydown = function (e) {
+HorizonSlider.prototype.handleKeydown = function (e) {
   // Only respond to left/right arrow keys
   if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     e.preventDefault(); // Prevent default browser scroll on arrow keys
@@ -663,7 +663,7 @@ CustomSlider.prototype.handleKeydown = function (e) {
   }
 };
 
-CustomSlider.prototype.initAutoplay = function () {
+HorizonSlider.prototype.initAutoplay = function () {
   if (this.options.autoplay && this.slides.length > this.visibleSlides) {
     // Only autoplay if there's more than one visible slide to scroll
     this.stopAutoplay();
@@ -690,7 +690,7 @@ CustomSlider.prototype.initAutoplay = function () {
   }
 };
 
-CustomSlider.prototype.stopAutoplay = function () {
+HorizonSlider.prototype.stopAutoplay = function () {
   if (this.autoplayTimer) {
     clearInterval(this.autoplayTimer);
     this.autoplayTimer = null;
@@ -701,7 +701,7 @@ CustomSlider.prototype.stopAutoplay = function () {
  * Handles window resize events to recalculate slider layout.
  * @private
  */
-CustomSlider.prototype._handleResize = function () {
+HorizonSlider.prototype._handleResize = function () {
   // Always get the updated visible slides and drag state based on current window width
   // getVisibleSlides updates this.options.drag based on the current breakpoint
   const newVisibleSlides = this.getVisibleSlides();
@@ -757,7 +757,7 @@ CustomSlider.prototype._handleResize = function () {
  * Destroys the slider instance, removing all event listeners and clearing timers.
  * This is crucial for memory management and preventing ghost events.
  */
-CustomSlider.prototype.destroy = function () {
+HorizonSlider.prototype.destroy = function () {
   this.stopAutoplay();
   window.removeEventListener("resize", this._debouncedResizeHandler);
   this.container.removeEventListener("keydown", this._handleKeydownBound);
@@ -810,7 +810,7 @@ CustomSlider.prototype.destroy = function () {
 };
 
 /**
- * Initializes CustomSlider instances based on a configuration object.
+ * Initializes HorizonSlider instances based on a configuration object.
  * Loads Draggable.min.js dynamically if not already present.
  * @param {Object.<string, Object>} config A map where keys are CSS selectors and values are slider options.
  */
@@ -859,24 +859,24 @@ function _initializeSliders(config) {
     elements.forEach((el) => {
       // Destroy existing instances if they exist to prevent duplicates
       if (
-        el.customSliderInstance &&
-        typeof el.customSliderInstance.destroy === "function"
+        el.HorizonSliderInstance &&
+        typeof el.HorizonSliderInstance.destroy === "function"
       ) {
-        el.customSliderInstance.destroy();
+        el.HorizonSliderInstance.destroy();
       }
-      const instance = new CustomSlider(el, config[selector]);
+      const instance = new HorizonSlider(el, config[selector]);
       // Store instance on the DOM element for potential re-initialization or destruction
-      el.customSliderInstance = instance;
+      el.HorizonSliderInstance = instance;
     });
   }
 }
 
 // Expose to window for global access (for CDN usage)
 if (typeof window !== "undefined") {
-  window.CustomSlider = CustomSlider;
+  window.HorizonSlider = HorizonSlider;
   window.horizonSlider = horizonSlider;
 } else {
   console.warn(
-    "CustomSlider and horizonSlider not attached to window: Non-browser environment detected."
+    "HorizonSlider and horizonSlider not attached to window: Non-browser environment detected."
   );
 }

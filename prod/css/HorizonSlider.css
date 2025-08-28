@@ -2,13 +2,13 @@
 /*-----------------------------
     Slider Main Styles fff
   -------------------------------*/
-.horizon-slider_container { max-width: 1690px; margin: 0 auto; position: relative; overflow: hidden; }
+.horizon-slider_container { position: relative; overflow: hidden; }
 .horizon-slider_track { display: flex; transition: transform var(--animation-duration) var(--animation-ease); will-change: transform; }
 .horizon-slide, .test { flex-shrink: 0; background-color: #e3f2fd; /* Light blue */ display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: var(--slider-border-radius); }
 /*-----------------------------
     Navigation Area
   -------------------------------*/
-.slider_navigation-area { display: flex; align-items: center; justify-content: space-between; max-width: 1596px; margin: 20px auto 0; padding: 0 10px; box-sizing: border-box; gap: var(--nav-gap); flex-wrap: wrap; }
+.slider_navigation-area { display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; gap: var(--nav-gap); flex-wrap: wrap; }
 .nav-buttons { display: flex; gap: var(--nav-gap); flex-shrink: 0; }
 .prev-btn,
 .next-btn { height: var(--nav-btn-size); width: var(--nav-btn-size); cursor: pointer; border-radius: 50%; border: 1px solid var(--nav-btn-border-color); background-color: transparent; padding: 0; display: flex; justify-content: center; align-items: center; transition: background-color 0.2s ease, border-color 0.2s ease; }

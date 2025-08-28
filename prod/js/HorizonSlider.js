@@ -25,7 +25,7 @@ function debounce(func, wait) {
 }
 
 /**
- * A custom slider component with optional navigation, tracking, drag, and autoplay features.
+ * A custom slider component with optional navigation, tracking, drag, autoplay, and center effect features.
  * @param {HTMLElement} container The main container element for the slider.
  * @param {Object} options Configuration options for the slider.
  */
@@ -48,6 +48,7 @@ function HorizonSlider(container, options) {
     drag: true, // Enable/disable drag functionality
     autoplay: true, // Autoplay options: false or { delay: 3000, pauseOnHover: true }
     responsive: { 0: { items: 1 } }, // Number of visible items at different breakpoints
+    center: false, // Enable center effect
     ...options,
   };
 
@@ -221,7 +222,12 @@ HorizonSlider.prototype.getVisibleSlides = function () {
 
 HorizonSlider.prototype.setupSlider = function () {
   const gap = this.options.margin;
-  this.track.style.gap = `${gap}px`;
+  // Only apply CSS gap in non-center mode
+  if (this.options.center) {
+    this.track.style.gap = "0px"; // Remove gap in center mode
+  } else {
+    this.track.style.gap = `${gap}px`;
+  }
   this.calculateSlideWidth();
 
   // Hide/show dynamically generated elements based on options
@@ -235,6 +241,69 @@ HorizonSlider.prototype.setupSlider = function () {
   if (this.trackerThumb && this.options.showTracker) {
     this.adjustThumbWidth();
   }
+
+  // Apply center effect styles if enabled
+  if (this.options.center) {
+    this._applyCenterStyles();
+  }
+};
+
+/**
+ * Applies center effect styles to slides
+ * @private
+ */
+HorizonSlider.prototype._applyCenterStyles = function () {
+  this.slides.forEach((slide, index) => {
+    slide.style.transition =
+      "transform 0.3s ease, opacity 0.3s ease, scale 0.3s ease";
+    this._updateSlideCenter(slide, index);
+  });
+};
+
+/**
+ * Updates center effect for a specific slide
+ * @param {HTMLElement} slide The slide element
+ * @param {number} index The slide index
+ * @private
+ */
+HorizonSlider.prototype._updateSlideCenter = function (slide, index) {
+  if (!this.options.center) return;
+
+  const distance = Math.abs(index - this.currentIndex);
+  const isCenter = index === this.currentIndex;
+
+  if (isCenter) {
+    // Center slide - full scale and opacity
+    slide.style.transform = "scale(1)";
+    slide.style.opacity = "1";
+    slide.style.zIndex = "10";
+    slide.classList.add("is-center");
+  } else if (distance === 1) {
+    // Adjacent slides - slightly smaller and less opaque
+    slide.style.transform = "scale(0.85)";
+    slide.style.opacity = "0.7";
+    slide.style.zIndex = "5";
+    slide.classList.remove("is-center");
+    slide.classList.add("is-adjacent");
+  } else {
+    // Other slides - smaller and more transparent
+    slide.style.transform = "scale(0.7)";
+    slide.style.opacity = "0.4";
+    slide.style.zIndex = "1";
+    slide.classList.remove("is-center", "is-adjacent");
+  }
+};
+
+/**
+ * Updates all slides with center effect
+ * @private
+ */
+HorizonSlider.prototype._updateAllSlidesCenter = function () {
+  if (!this.options.center) return;
+
+  this.slides.forEach((slide, index) => {
+    this._updateSlideCenter(slide, index);
+  });
 };
 
 HorizonSlider.prototype.calculateSlideWidth = function () {
@@ -249,15 +318,25 @@ HorizonSlider.prototype.calculateSlideWidth = function () {
   const gap = this.options.margin;
 
   // Calculate actual slide width, accounting for margins
-  this.slideWidth =
-    (containerWidth - gap * (this.visibleSlides - 1)) / this.visibleSlides;
+  if (this.options.center) {
+    // For center mode, calculate width without CSS gap since we handle spacing manually
+    this.slideWidth =
+      (containerWidth - gap * (this.visibleSlides - 1)) / this.visibleSlides;
+    // Track width calculation for center mode - positioning is handled manually
+    this.trackWidth =
+      this.slideWidth * this.slides.length +
+      gap * Math.max(0, this.slides.length - 1);
+  } else {
+    this.slideWidth =
+      (containerWidth - gap * (this.visibleSlides - 1)) / this.visibleSlides;
+    this.trackWidth =
+      this.slideWidth * this.slides.length + gap * (this.slides.length - 1);
+  }
 
   this.slides.forEach((slide) => {
     slide.style.width = `${this.slideWidth}px`;
   });
 
-  this.trackWidth =
-    this.slideWidth * this.slides.length + gap * (this.slides.length - 1);
   this.track.style.width = `${this.trackWidth}px`;
 };
 
@@ -281,18 +360,36 @@ HorizonSlider.prototype.adjustThumbWidth = function () {
 
 HorizonSlider.prototype.updateSlider = function () {
   const containerWidth = this.container.offsetWidth;
-  // Calculate the maximum negative translation for the track
-  const maxOffset = -(this.trackWidth - containerWidth);
+  let newX;
 
-  // Calculate the target X position for the track
-  let newX = -this.currentIndex * (this.slideWidth + this.options.margin);
+  if (this.options.center && this.slides.length > 1) {
+    // Center mode calculation
+    const centerOffset = containerWidth / 2 - this.slideWidth / 2;
+    // Use margin in calculation but not in CSS gap
+    const slideSpacing = this.options.margin;
+    newX = centerOffset - this.currentIndex * (this.slideWidth + slideSpacing);
 
-  // Ensure the newX does not exceed the valid bounds (0 to maxOffset)
-  newX = Math.max(maxOffset, Math.min(0, newX));
+    // Calculate bounds for center mode
+    const firstSlideCenter = centerOffset;
+    const lastSlideCenter =
+      centerOffset -
+      (this.slides.length - 1) * (this.slideWidth + slideSpacing);
+
+    // Apply bounds
+    newX = Math.max(lastSlideCenter, Math.min(firstSlideCenter, newX));
+  } else {
+    // Standard mode calculation
+    const maxOffset = -(this.trackWidth - containerWidth);
+    newX = -this.currentIndex * (this.slideWidth + this.options.margin);
+    newX = Math.max(maxOffset, Math.min(0, newX));
+  }
 
   // Directly set transform property for the track using CSS transition
   this.track.style.transform = `translateX(${newX}px)`;
   this.lastTranslateX = newX; // Update lastTranslateX for drag calculations
+
+  // Update center effect for all slides
+  this._updateAllSlidesCenter();
 
   // Update the tracker thumb position if visible
   if (
@@ -304,13 +401,15 @@ HorizonSlider.prototype.updateSlider = function () {
     const trackerContainerWidth = this.trackerContainer.offsetWidth;
 
     // Calculate the range of movement for the track and thumb
-    const trackMovementRange = Math.abs(maxOffset); // Total distance track can move
+    const trackMovementRange = this.options.center
+      ? Math.abs(newX - (containerWidth / 2 - this.slideWidth / 2))
+      : Math.abs(-(this.trackWidth - containerWidth)); // Total distance track can move
     const thumbMovementRange = trackerContainerWidth - thumbWidth; // Total distance thumb can move
 
     if (trackMovementRange > 0) {
       // Avoid division by zero
       // Calculate progress of the track movement
-      const progress = Math.abs(newX) / trackMovementRange;
+      const progress = this.currentIndex / Math.max(1, this.slides.length - 1);
       // Apply that progress to the thumb's movement range
       const thumbX = progress * thumbMovementRange;
       this.trackerThumb.style.transform = `translateX(${thumbX}px)`;
@@ -361,25 +460,36 @@ HorizonSlider.prototype.initEvents = function () {
 
           if (thumbMovementRange > 0 && trackMovementRange > 0) {
             const progress = thumbX / thumbMovementRange;
-            const targetTrackX = -progress * trackMovementRange;
 
-            // Directly apply transform to track, no animation
-            this.track.style.transform = `translateX(${targetTrackX}px)`;
-            this.lastTranslateX = targetTrackX;
+            if (this.options.center) {
+              // For center mode, calculate the target index based on progress
+              this.currentIndex = Math.round(
+                progress * (this.slides.length - 1)
+              );
+              this.currentIndex = Math.max(
+                0,
+                Math.min(this.currentIndex, this.slides.length - 1)
+              );
+            } else {
+              const targetTrackX = -progress * trackMovementRange;
+              // Directly apply transform to track, no animation
+              this.track.style.transform = `translateX(${targetTrackX}px)`;
+              this.lastTranslateX = targetTrackX;
 
-            // Update currentIndex based on track position
-            const slideWidthWithGap = this.slideWidth + this.options.margin;
-            // Round to nearest index, clamping to ensure it's within valid range
-            this.currentIndex = Math.round(
-              Math.abs(targetTrackX) / slideWidthWithGap
-            );
-            this.currentIndex = Math.max(
-              0,
-              Math.min(
-                this.currentIndex,
-                this.slides.length - this.visibleSlides
-              )
-            );
+              // Update currentIndex based on track position
+              const slideWidthWithGap = this.slideWidth + this.options.margin;
+              // Round to nearest index, clamping to ensure it's within valid range
+              this.currentIndex = Math.round(
+                Math.abs(targetTrackX) / slideWidthWithGap
+              );
+              this.currentIndex = Math.max(
+                0,
+                Math.min(
+                  this.currentIndex,
+                  this.slides.length - this.visibleSlides
+                )
+              );
+            }
           }
         }
       },
@@ -420,7 +530,9 @@ HorizonSlider.prototype.initEvents = function () {
  */
 HorizonSlider.prototype._handleNavClick = function (direction) {
   this.stopAutoplay();
-  const maxIndex = this.slides.length - this.visibleSlides;
+  const maxIndex = this.options.center
+    ? this.slides.length - 1
+    : this.slides.length - this.visibleSlides;
 
   if (direction === "prev") {
     if (this.options.loop) {
@@ -454,7 +566,9 @@ HorizonSlider.prototype._updateNavButtonStates = function () {
     return; // Do nothing if navigation is disabled or buttons not rendered
   }
 
-  const maxIndex = this.slides.length - this.visibleSlides;
+  const maxIndex = this.options.center
+    ? this.slides.length - 1
+    : this.slides.length - this.visibleSlides;
 
   // If there are fewer slides than visible or only one slide, disable navigation entirely
   if (maxIndex <= 0) {
@@ -567,18 +681,49 @@ HorizonSlider.prototype.handleTouchMove = function (e) {
     e.preventDefault();
   }
 
-  this.currentX = e.touches ? e.touches[0].clientX : e.clientX;
+  HorizonSlider.prototype.handleTouchMove = function (e) {
+    if (!this.isDragging) return;
+    // Prevent default scroll behavior only if we are actively dragging horizontally
+    if (e.cancelable) {
+      e.preventDefault();
+    }
 
-  const containerWidth = this.container.offsetWidth;
-  const maxOffset = -(this.trackWidth - containerWidth);
-  let newTranslateX = this.lastTranslateX + (this.currentX - this.startX);
+    this.currentX = e.touches ? e.touches[0].clientX : e.clientX;
+    const containerWidth = this.container.offsetWidth;
+    const slideSpacing = this.options.margin; // Use consistent variable name
+    const slideWidthWithGap = this.slideWidth + slideSpacing;
+    let newTranslateX = this.lastTranslateX + (this.currentX - this.startX);
 
-  // Apply friction to edges for a "rubber band" effect
-  if (newTranslateX > 0) {
-    newTranslateX = newTranslateX * 0.3; // Reduce movement beyond start
-  } else if (newTranslateX < maxOffset) {
-    newTranslateX = maxOffset + (newTranslateX - maxOffset) * 0.3; // Reduce movement beyond end
-  }
+    if (this.options.center) {
+      // Center mode bounds calculation
+      const centerOffset = containerWidth / 2 - this.slideWidth / 2;
+      const firstSlideCenter = centerOffset;
+      const lastSlideCenter =
+        centerOffset - (this.slides.length - 1) * slideWidthWithGap;
+
+      // Apply friction to edges for a "rubber band" effect
+      if (newTranslateX > firstSlideCenter) {
+        newTranslateX =
+          firstSlideCenter + (newTranslateX - firstSlideCenter) * 0.3;
+      } else if (newTranslateX < lastSlideCenter) {
+        newTranslateX =
+          lastSlideCenter + (newTranslateX - lastSlideCenter) * 0.3;
+      }
+    } else {
+      // Standard mode bounds calculation
+      const maxOffset = -(this.trackWidth - containerWidth);
+
+      // Apply friction to edges for a "rubber band" effect
+      if (newTranslateX > 0) {
+        newTranslateX = newTranslateX * 0.3; // Reduce movement beyond start
+      } else if (newTranslateX < maxOffset) {
+        newTranslateX = maxOffset + (newTranslateX - maxOffset) * 0.3; // Reduce movement beyond end
+      }
+    }
+
+    // Directly set transform property for the track
+    this.track.style.transform = `translateX(${newTranslateX}px)`;
+  };
 
   // Directly set transform property for the track
   this.track.style.transform = `translateX(${newTranslateX}px)`;
@@ -589,8 +734,8 @@ HorizonSlider.prototype.handleTouchEnd = function () {
   this.isDragging = false;
 
   const containerWidth = this.container.offsetWidth;
-  const maxOffset = -(this.trackWidth - containerWidth);
-  const slideWidthWithGap = this.slideWidth + this.options.margin;
+  const slideSpacing = this.options.margin; // Use consistent variable name
+  const slideWidthWithGap = this.slideWidth + slideSpacing;
   const diffX = this.currentX - this.startX;
   const swipeThreshold = slideWidthWithGap * 0.1; // Lower threshold for easier swapping
 
@@ -603,10 +748,10 @@ HorizonSlider.prototype.handleTouchEnd = function () {
   if (Math.abs(diffX) > swipeThreshold || Math.abs(velocity) > 0.3) {
     // Swipe left (next)
     if (diffX < 0) {
-      targetIndex = Math.min(
-        this.currentIndex + 1,
-        this.slides.length - this.visibleSlides
-      );
+      const maxIndex = this.options.center
+        ? this.slides.length - 1
+        : this.slides.length - this.visibleSlides;
+      targetIndex = Math.min(this.currentIndex + 1, maxIndex);
     }
     // Swipe right (prev)
     else if (diffX > 0) {
@@ -617,14 +762,23 @@ HorizonSlider.prototype.handleTouchEnd = function () {
     const currentTrackX = new DOMMatrixReadOnly(
       window.getComputedStyle(this.track).transform
     ).m41;
-    targetIndex = Math.round(Math.abs(currentTrackX) / slideWidthWithGap);
+
+    if (this.options.center) {
+      // For center mode, calculate based on center offset
+      const centerOffset = containerWidth / 2 - this.slideWidth / 2;
+      const slideOffset = (centerOffset - currentTrackX) / slideWidthWithGap;
+      targetIndex = Math.round(slideOffset);
+    } else {
+      // Standard mode
+      targetIndex = Math.round(Math.abs(currentTrackX) / slideWidthWithGap);
+    }
   }
 
   // Ensure targetIndex is within valid bounds
-  targetIndex = Math.max(
-    0,
-    Math.min(targetIndex, this.slides.length - this.visibleSlides)
-  );
+  const maxIndex = this.options.center
+    ? this.slides.length - 1
+    : this.slides.length - this.visibleSlides;
+  targetIndex = Math.max(0, Math.min(targetIndex, maxIndex));
   this.currentIndex = targetIndex;
 
   this.updateSlider(); // Snap to the calculated target index
@@ -638,7 +792,9 @@ HorizonSlider.prototype.handleKeydown = function (e) {
   if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     e.preventDefault(); // Prevent default browser scroll on arrow keys
     this.stopAutoplay();
-    const maxIndex = this.slides.length - this.visibleSlides;
+    const maxIndex = this.options.center
+      ? this.slides.length - 1
+      : this.slides.length - this.visibleSlides;
 
     if (e.key === "ArrowLeft") {
       if (this.options.loop) {
@@ -669,7 +825,9 @@ HorizonSlider.prototype.initAutoplay = function () {
     this.stopAutoplay();
     const delay = this.options.autoplay.delay || 3000;
     this.autoplayTimer = setInterval(() => {
-      const maxIndex = this.slides.length - this.visibleSlides;
+      const maxIndex = this.options.center
+        ? this.slides.length - 1
+        : this.slides.length - this.visibleSlides;
       if (maxIndex <= 0) {
         // If all slides are visible, stop autoplay
         this.stopAutoplay();
@@ -732,6 +890,15 @@ HorizonSlider.prototype._handleResize = function () {
 
     this.calculateSlideWidth();
     this.adjustThumbWidth();
+
+    // Reapply gap settings based on center mode
+    if (this.options.center) {
+      this.track.style.gap = "0px";
+      this._applyCenterStyles();
+    } else {
+      this.track.style.gap = `${this.options.margin}px`;
+    }
+
     this.updateSlider();
   }
 
@@ -790,6 +957,12 @@ HorizonSlider.prototype.destroy = function () {
   this.slides.forEach((slide) => {
     slide.style.width = "";
     slide.style.minWidth = "";
+    // Reset center effect styles
+    slide.style.transform = "";
+    slide.style.opacity = "";
+    slide.style.zIndex = "";
+    slide.style.transition = "";
+    slide.classList.remove("is-center", "is-adjacent");
   });
 
   // Clear all references to prevent memory leaks
